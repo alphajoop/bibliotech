@@ -38,7 +38,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const login = async (email: string, password: string) => {
     try {
       const response = await axios.post(
-        'http://localhost:3000/api/admins/login',
+        'https://api-bibliotech.onrender.com/api/admins/login',
         { email, password },
       );
       const adminData: Admin = response.data;
