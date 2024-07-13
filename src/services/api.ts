@@ -1,4 +1,4 @@
-import axios, { AxiosRequestConfig } from 'axios';
+import axios from 'axios';
 import { Book, User } from '../types';
 
 const apiUrl = 'http://localhost:3000/api';
@@ -9,7 +9,7 @@ const api = axios.create({
 
 // Ajout d'un intercepteur pour les requêtes sortantes
 api.interceptors.request.use(
-  (config: AxiosRequestConfig<any>) => {
+  config => {
     const token = localStorage.getItem('adminToken');
     if (token) {
       // Assurez-vous que config.headers est initialisé comme un objet s'il est non défini
