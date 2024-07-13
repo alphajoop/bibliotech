@@ -1,0 +1,27 @@
+{
+  "name": "library-manager-system",
+  "version": "1.0.0",
+  "description": "Une application pour gérer les emprunts et les retours de livres, avec un système de notifications pour les rappels de retour.",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon server.js",
+    "format": "prettier --write ."
+  },
+  "repository": "https://github.com/alphajoop/library-manager-system.git",
+  "author": "Alpha DIOP <alphakhoss@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.5.0",
+    "nodemailer": "^6.9.14",
+    "prettier": "^3.3.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}
