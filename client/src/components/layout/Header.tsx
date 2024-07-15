@@ -6,10 +6,10 @@ import { useAuth } from '../../contexts/AuthContext';
 
 export default function Header() {
   const navLinks = [
-    { text: 'Liste livres', url: '/' },
-    { text: 'Ajout Livre', url: '/add-book' },
-    { text: 'Ajout Utilisateur', url: '/add-user' },
-    { text: 'Liste Utilisateur', url: '/users' },
+    { text: 'Livres', url: '/book-list' },
+    { text: 'Ajouter Livre', url: '/add-book' },
+    { text: 'Utilisateurs', url: '/user-list' },
+    { text: 'Ajouter Utilisateur', url: '/add-user' },
   ];
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
