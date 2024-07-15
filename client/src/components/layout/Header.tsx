@@ -6,10 +6,10 @@ import { useAuth } from '../../contexts/AuthContext';
 
 export default function Header() {
   const navLinks = [
-    { text: 'Liste livres', url: '' },
-    { text: 'Ajout Livre', url: 'add-book' },
-    { text: 'Ajout Utilisateur', url: 'add-user' },
-    { text: 'Liste Utilisateur', url: 'users' },
+    { text: 'Liste livres', url: '/' },
+    { text: 'Ajout Livre', url: '/add-book' },
+    { text: 'Ajout Utilisateur', url: '/add-user' },
+    { text: 'Liste Utilisateur', url: '/users' },
   ];
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -61,7 +61,7 @@ export default function Header() {
                       to={link.url}
                       className={`
                     block rounded px-3 py-2 font-poppins text-xs font-semibold transition-all duration-500 md:p-0 md:text-lg md:hover:bg-transparent
-                    ${location.pathname === `/${link.url}` ? 'bg-blue-700 text-white hover:bg-blue-700 md:bg-transparent md:text-blue-700' : 'text-gray-900 hover:bg-gray-100 md:hover:text-blue-700'}
+                    ${location.pathname === `${link.url}` ? 'bg-blue-700 text-white hover:bg-blue-700 md:bg-transparent md:text-blue-700' : 'text-gray-900 hover:bg-gray-100 md:hover:text-blue-700'}
                   `}
                     >
                       {link.text}
