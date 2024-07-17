@@ -1,7 +1,9 @@
 import {
   CheckIcon,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Filter,
   Plus,
   Search,
   Trash,
@@ -12,11 +14,35 @@ import { useAuth } from '../contexts/AuthContext';
 import { useBooks } from '../contexts/BookContext';
 import { useUsers } from '../contexts/UserContext';
 
+interface RadioProps {
+  checked: boolean;
+  onChange: () => void;
+  label: string;
+  count: number;
+}
+
+const Radio = ({ checked, onChange, label, count }: RadioProps) => (
+  <div className="flex items-center">
+    <input
+      type="radio"
+      checked={checked}
+      onChange={onChange}
+      id={`${label}`}
+      className="w-4 h-4 bg-gray-100 border-gray-300 rounded text-blue-600 focus:ring-blue-500 focus:ring-2"
+    />
+    <label
+      htmlFor={`${label}`}
+      className="ml-2 text-sm font-medium text-gray-900"
+    >
+      {label} ({count})
+    </label>
+  </div>
+);
+
 export default function BookList() {
   const { books, deleteBook, borrowBook, returnBook, fetchBooks } = useBooks();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const { users, fetchUsers } = useUsers();
-
   const { admin } = useAuth();
   const navigate = useNavigate();
 
@@ -41,9 +67,21 @@ export default function BookList() {
   const [currentPage, setCurrentPage] = useState(1);
   const booksPerPage = 10;
 
-  const filteredBooks = books.filter((book) =>
-    book.title.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const [selectedAvailability, setSelectedAvailability] = useState<string>('');
+  const [showFilterDropdown, setShowFilterDropdown] = useState<boolean>(false);
+
+  const filteredBooks = books
+    .filter((book) =>
+      book.title.toLowerCase().includes(searchTerm.toLowerCase()),
+    )
+    .filter((book) => {
+      if (selectedAvailability === 'Disponible') {
+        return book.available;
+      } else if (selectedAvailability === 'Emprunté') {
+        return !book.available;
+      }
+      return true;
+    });
 
   const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
 
@@ -56,10 +94,18 @@ export default function BookList() {
     setCurrentPage(page);
   };
 
+  const handleAvailabilityChange = (status: string) => {
+    setSelectedAvailability(status);
+    //setShowFilterDropdown(false);
+  };
+
   const paginatedBooks = filteredBooks.slice(
     (currentPage - 1) * booksPerPage,
     currentPage * booksPerPage,
   );
+
+  const availableBooksCount = books.filter((book) => book.available).length;
+  const borrowedBooksCount = books.length - availableBooksCount;
 
   return (
     <section className="bg-white border-gray-200 font-inter">
@@ -83,7 +129,7 @@ export default function BookList() {
                     id="simple-search"
                     value={searchTerm}
                     onChange={handleSearchChange}
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2"
                     placeholder="Recherche"
                     required
                   />
@@ -95,9 +141,45 @@ export default function BookList() {
                 to={'/add-book'}
                 className="flex items-center justify-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 focus:outline-none"
               >
-                <Plus className="mr-2" />
+                <Plus className="h-5 w-5 mr-2" />
                 Ajouter un livre
               </Link>
+              <div className="relative">
+                <button
+                  onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                  className="w-full md:w-auto flex items-center justify-center py-2 px-4 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-gray-200"
+                  type="button"
+                >
+                  <Filter className="h-5 w-5 mr-2 text-gray-400" />
+                  Filter
+                  <ChevronDown className="-mr-1 ml-1.5 w-4 h-4" />
+                </button>
+                {showFilterDropdown && (
+                  <div className="absolute right-0 z-10 w-48 p-3 mt-2 bg-white rounded-lg shadow">
+                    <h6 className="mb-3 text-sm font-medium text-gray-900">
+                      Filtrer par disponibilité
+                    </h6>
+                    <Radio
+                      checked={selectedAvailability === ''}
+                      onChange={() => handleAvailabilityChange('')}
+                      label="Tous les Livres"
+                      count={books.length}
+                    />
+                    <Radio
+                      checked={selectedAvailability === 'Disponible'}
+                      onChange={() => handleAvailabilityChange('Disponible')}
+                      label="Disponible"
+                      count={availableBooksCount}
+                    />
+                    <Radio
+                      checked={selectedAvailability === 'Emprunté'}
+                      onChange={() => handleAvailabilityChange('Emprunté')}
+                      label="Emprunté"
+                      count={borrowedBooksCount}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           {isLoading ? (
@@ -158,7 +240,7 @@ export default function BookList() {
                               aria-label={`Sélectionner un utilisateur pour emprunter "${book.title}"`}
                               className="bg-gray-200 border border-gray-300 text-gray-700 py-1 px-2 rounded focus:outline-none focus:bg-white focus:border-gray-500"
                             >
-                              <option value="">Emprunter</option>
+                              <option value="">Choisir un emprunteur</option>
                               {users.map((user) => (
                                 <option key={user._id} value={user._id}>
                                   {user.name}
@@ -185,6 +267,20 @@ export default function BookList() {
               </tbody>
             </table>
           )}
+          <div className="p-4">
+            <p className="text-sm text-gray-500">
+              Livres disponibles:{' '}
+              <span className="font-semibold text-gray-900">
+                {availableBooksCount}
+              </span>
+            </p>
+            <p className="text-sm text-gray-500">
+              Livres empruntés:{' '}
+              <span className="font-semibold text-gray-900">
+                {borrowedBooksCount}
+              </span>
+            </p>
+          </div>
           <nav
             className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0 p-4"
             aria-label="Table navigation"

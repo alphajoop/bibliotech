@@ -1,8 +1,40 @@
-import { ChevronLeft, ChevronRight, Plus, Search, Trash } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Filter,
+  Plus,
+  Search,
+  Trash,
+} from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useUsers } from '../contexts/UserContext';
+
+interface RadioProps {
+  checked: boolean;
+  onChange: () => void;
+  label: string;
+}
+
+const Radio = ({ checked, onChange, label }: RadioProps) => (
+  <div className="flex items-center">
+    <input
+      type="radio"
+      checked={checked}
+      onChange={onChange}
+      id={`${label}`}
+      className="w-4 h-4 bg-gray-100 border-gray-300 rounded text-blue-600 focus:ring-blue-500 focus:ring-2"
+    />
+    <label
+      htmlFor={`${label}`}
+      className="ml-2 text-sm font-medium text-gray-900"
+    >
+      {label}
+    </label>
+  </div>
+);
 
 export default function UserList() {
   const { users, deleteUser, fetchUsers } = useUsers();
@@ -22,8 +54,8 @@ export default function UserList() {
       setIsLoading(true);
       setIsLoading(false);
     };
-
     fetchUserData();
+
     fetchUsers();
   }, [fetchUsers]);
 
@@ -31,11 +63,31 @@ export default function UserList() {
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 10;
 
-  const filteredUsers = users.filter(
-    (user) =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const [sortOrder, setSortOrder] = useState<string>('');
+  const [showFilterDropdown, setShowFilterDropdown] = useState<boolean>(false);
+
+  const filteredUsers = users
+    .filter(
+      (user) =>
+        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase()),
+    )
+    .sort((a, b) => {
+      if (sortOrder === 'A-Z') {
+        return a.name.localeCompare(b.name);
+      } else if (sortOrder === 'Z-A') {
+        return b.name.localeCompare(a.name);
+      } else if (sortOrder === 'Plus récent') {
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      } else if (sortOrder === 'Plus ancien') {
+        return (
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+      }
+      return 0;
+    });
 
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
 
@@ -46,6 +98,11 @@ export default function UserList() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+  };
+
+  const handleSortOrderChange = (order: string) => {
+    setSortOrder(order);
+    //setShowFilterDropdown(false);
   };
 
   const paginatedUsers = filteredUsers.slice(
@@ -75,7 +132,7 @@ export default function UserList() {
                     id="simple-search"
                     value={searchTerm}
                     onChange={handleSearchChange}
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2"
                     placeholder="Recherche"
                     required
                   />
@@ -87,9 +144,52 @@ export default function UserList() {
                 to={'/add-user'}
                 className="flex items-center justify-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 focus:outline-none"
               >
-                <Plus className="mr-2" />
+                <Plus className="h-5 w-5 mr-2" />
                 Ajouter un utilisateur
               </Link>
+              <div className="relative">
+                <button
+                  onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                  className="w-full md:w-auto flex items-center justify-center py-2 px-4 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-gray-200"
+                  type="button"
+                >
+                  <Filter className="h-5 w-5 mr-2 text-gray-400" />
+                  Filter
+                  <ChevronDown className="-mr-1 ml-1.5 w-4 h-4" />
+                </button>
+                {showFilterDropdown && (
+                  <div className="absolute right-0 z-10 w-48 p-3 mt-2 bg-white rounded-lg shadow">
+                    <h6 className="mb-3 text-sm font-medium text-gray-900">
+                      Filtrer par
+                    </h6>
+                    <Radio
+                      checked={sortOrder === ''}
+                      onChange={() => handleSortOrderChange('')}
+                      label="Tous les utilisateurs"
+                    />
+                    <Radio
+                      checked={sortOrder === 'A-Z'}
+                      onChange={() => handleSortOrderChange('A-Z')}
+                      label="A-Z"
+                    />
+                    <Radio
+                      checked={sortOrder === 'Z-A'}
+                      onChange={() => handleSortOrderChange('Z-A')}
+                      label="Z-A"
+                    />
+                    <Radio
+                      checked={sortOrder === 'Plus récent'}
+                      onChange={() => handleSortOrderChange('Plus récent')}
+                      label="Plus récent"
+                    />
+                    <Radio
+                      checked={sortOrder === 'Plus ancien'}
+                      onChange={() => handleSortOrderChange('Plus ancien')}
+                      label="Plus ancien"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           {isLoading ? (
