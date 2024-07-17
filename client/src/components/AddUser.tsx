@@ -4,15 +4,16 @@ import { useAuth } from '../contexts/AuthContext';
 import { useUsers } from '../contexts/UserContext';
 import { useSubmitForm } from '../hooks/useSubmitForm';
 
-interface User {
+interface UserForm {
   name: string;
   email: string;
+  createdAt: string;
 }
 
 export default function AddUser() {
   const { addUser } = useUsers();
   const { isLoading, successMessage, errorMessage, handleSubmit } =
-    useSubmitForm<User>(addUser);
+    useSubmitForm<UserForm>(addUser); // Utiliser UserForm ici
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
 
@@ -28,7 +29,11 @@ export default function AddUser() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await handleSubmit(
-      { name, email },
+      {
+        name,
+        email,
+        createdAt: '',
+      },
       'Utilisateur ajouté avec succès',
       "Erreur lors de l'ajout de l'utilisateur",
     );
