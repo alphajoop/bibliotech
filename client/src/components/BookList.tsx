@@ -40,9 +40,8 @@ const Radio = ({ checked, onChange, label, count }: RadioProps) => (
 );
 
 export default function BookList() {
-  const { books, deleteBook, borrowBook, returnBook, fetchBooks } = useBooks();
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const { users, fetchUsers } = useUsers();
+  const { books, deleteBook, borrowBook, returnBook, loading } = useBooks();
+  const { users } = useUsers();
   const { admin } = useAuth();
   const navigate = useNavigate();
 
@@ -51,17 +50,6 @@ export default function BookList() {
       navigate('/login');
     }
   }, [admin, navigate]);
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      setIsLoading(true);
-      setIsLoading(false);
-    };
-    fetchUserData();
-
-    fetchBooks();
-    fetchUsers();
-  }, [fetchBooks, fetchUsers]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -182,10 +170,10 @@ export default function BookList() {
               </div>
             </div>
           </div>
-          {isLoading ? (
-            <p className="p-4 text-center text-gray-500">
-              Chargement en cours...
-            </p>
+          {loading ? (
+            <div className="p-4 text-center text-gray-500">
+              Chargement des livres...
+            </div>
           ) : filteredBooks.length === 0 ? (
             <p className="p-4 text-center text-gray-500">Aucun livre trouvé.</p>
           ) : (

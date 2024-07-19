@@ -16,7 +16,12 @@ interface Admin {
 
 interface AuthContextProps {
   admin: Admin | null;
-  login: (email: string, password: string) => Promise<void>;
+  loading: boolean;
+  login: (
+    email: string,
+    password: string,
+    onSuccess?: () => void,
+  ) => Promise<void>;
   logout: () => void;
 }
 
@@ -26,6 +31,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [admin, setAdmin] = useState<Admin | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -35,7 +41,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (
+    email: string,
+    password: string,
+    onSuccess?: () => void,
+  ) => {
+    setLoading(true);
     try {
       const response = await axios.post(
         'https://api-bibliotech.onrender.com/api/admins/login',
@@ -44,8 +55,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       const adminData: Admin = response.data;
       localStorage.setItem('adminToken', JSON.stringify(adminData));
       setAdmin(adminData);
+      if (onSuccess) onSuccess();
     } catch (error) {
       console.log('Échec de la connexion', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -55,12 +69,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   return (
-    <AuthContext.Provider value={{ admin, login, logout }}>
+    <AuthContext.Provider value={{ admin, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

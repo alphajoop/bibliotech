@@ -37,8 +37,7 @@ const Radio = ({ checked, onChange, label }: RadioProps) => (
 );
 
 export default function UserList() {
-  const { users, deleteUser, fetchUsers } = useUsers();
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const { users, deleteUser, loading } = useUsers();
 
   const { admin } = useAuth();
   const navigate = useNavigate();
@@ -48,16 +47,6 @@ export default function UserList() {
       navigate('/login');
     }
   }, [admin, navigate]);
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      setIsLoading(true);
-      setIsLoading(false);
-    };
-    fetchUserData();
-
-    fetchUsers();
-  }, [fetchUsers]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -192,9 +181,9 @@ export default function UserList() {
               </div>
             </div>
           </div>
-          {isLoading ? (
+          {loading ? (
             <p className="p-4 text-center text-gray-500">
-              Chargement en cours...
+              Chargement des utilisateurs...
             </p>
           ) : filteredUsers.length === 0 ? (
             <p className="p-4 text-center text-gray-500">

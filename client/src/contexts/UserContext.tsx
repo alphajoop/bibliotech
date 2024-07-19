@@ -14,6 +14,7 @@ import { User } from '../types';
 
 interface UserContextProps {
   users: User[];
+  loading: boolean;
   fetchUsers: () => void;
   addUser: (user: Omit<User, '_id' | 'borrowedBooks'>) => Promise<void>;
 
@@ -28,20 +29,27 @@ const UserContext = createContext<UserContextProps | undefined>(undefined);
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const fetchUsers = async () => {
+    setLoading(true);
     const users = await getUsers();
     setUsers(users);
+    setLoading(false);
   };
 
   const addUser = async (user: Omit<User, '_id' | 'borrowedBooks'>) => {
+    setLoading(true);
     const newUser = await apiAddUser(user);
     setUsers((prevUsers) => [...prevUsers, newUser]);
+    setLoading(false);
   };
 
   const deleteUser = async (id: string) => {
+    setLoading(true);
     await apiDeleteUser(id);
     setUsers((prevUsers) => prevUsers.filter((user) => user._id !== id));
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -49,7 +57,9 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   }, []);
 
   return (
-    <UserContext.Provider value={{ users, fetchUsers, addUser, deleteUser }}>
+    <UserContext.Provider
+      value={{ users, loading, fetchUsers, addUser, deleteUser }}
+    >
       {children}
     </UserContext.Provider>
   );
