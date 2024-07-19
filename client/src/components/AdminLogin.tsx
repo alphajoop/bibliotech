@@ -9,8 +9,8 @@ import Loading from './Loading';
 export default function AdminLogin() {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-  const [error, setError] = useState<string>('');
-  const { login, admin, loading } = useAuth();
+  const { login, admin, loading, successMessage, errorMessage, clearMessages } =
+    useAuth();
   const { fetchBooks } = useBooks();
   const { fetchUsers } = useUsers();
   const navigate = useNavigate();
@@ -28,11 +28,19 @@ export default function AdminLogin() {
         fetchBooks();
         fetchUsers();
       });
-      setError('Email ou mot de passe incorrect');
     } catch (err) {
-      setError('Échec de la connexion');
+      console.error(err);
     }
   };
+
+  useEffect(() => {
+    if (successMessage || errorMessage) {
+      const timer = setTimeout(() => {
+        clearMessages();
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage, errorMessage, clearMessages]);
 
   return (
     <section className="bg-gray-50 font-inter">
@@ -49,8 +57,13 @@ export default function AdminLogin() {
             <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl">
               Connexion Administrateur
             </h1>
-            {error && (
-              <div className="mb-4 text-base text-red-600">{error}</div>
+            {successMessage && (
+              <div className="mb-4 text-base text-green-600">
+                {successMessage}
+              </div>
+            )}
+            {errorMessage && (
+              <div className="mb-4 text-base text-red-600">{errorMessage}</div>
             )}
             <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit}>
               <div>

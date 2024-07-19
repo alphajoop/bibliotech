@@ -74,4 +74,13 @@ export const returnBook = async (
   await api.post(`/books/return/${bookId}/${userId}`);
 };
 
+export const login = async (email: string, password: string) => {
+  const response = await api.post('/admins/login', { email, password });
+  return response.data;
+};
+
+export const logout = () => {
+  localStorage.removeItem('adminToken');
+};
+
 export default api;

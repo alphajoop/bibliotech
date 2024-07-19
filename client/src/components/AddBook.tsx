@@ -2,20 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useBooks } from '../contexts/BookContext';
-import { useSubmitForm } from '../hooks/useSubmitForm';
 import Loading from './Loading';
 
-interface Book {
-  title: string;
-  author: string;
-  year: number;
-  genre: string;
-}
-
 export default function AddBook() {
-  const { addBook } = useBooks();
-  const { isLoading, successMessage, errorMessage, handleSubmit } =
-    useSubmitForm<Book>(addBook);
+  const { addBook, loading, successMessage, errorMessage, clearMessages } =
+    useBooks();
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [year, setYear] = useState('');
@@ -32,16 +23,21 @@ export default function AddBook() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await handleSubmit(
-      { title, author, year: parseInt(year), genre },
-      'Livre ajouté avec succès',
-      "Erreur lors de l'ajout du livre",
-    );
+    await addBook({ title, author, year: parseInt(year), genre });
     setTitle('');
     setAuthor('');
     setYear('');
     setGenre('');
   };
+
+  useEffect(() => {
+    if (successMessage || errorMessage) {
+      const timer = setTimeout(() => {
+        clearMessages();
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage, errorMessage, clearMessages]);
 
   return (
     <section className="bg-white font-inter">
@@ -118,9 +114,9 @@ export default function AddBook() {
           <button
             type="submit"
             className="inline-flex items-center px-5 py-2.5 mt-4 sm:mt-6 text-sm font-medium text-center text-white bg-blue-700 rounded-lg focus:ring-4 focus:ring-blue-200 hover:bg-blue-800"
-            disabled={isLoading}
+            disabled={loading}
           >
-            {isLoading ? <Loading info="Chargement..." /> : 'Ajouter'}
+            {loading ? <Loading info="Chargement..." /> : 'Ajouter'}
           </button>
         </form>
       </div>

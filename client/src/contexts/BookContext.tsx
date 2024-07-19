@@ -17,6 +17,8 @@ import { Book } from '../types';
 interface BookContextProps {
   books: Book[];
   loading: boolean;
+  successMessage: string | null;
+  errorMessage: string | null;
   fetchBooks: () => void;
   addBook: (
     book: Omit<Book, '_id' | 'available' | 'borrowedBy' | 'dueDate'>,
@@ -24,6 +26,7 @@ interface BookContextProps {
   deleteBook: (id: string) => void;
   borrowBook: (bookId: string, userId: string) => void;
   returnBook: (bookId: string, userId: string) => void;
+  clearMessages: () => void;
 }
 
 interface BookProviderProps {
@@ -35,42 +38,78 @@ const BookContext = createContext<BookContextProps | undefined>(undefined);
 export const BookProvider: React.FC<BookProviderProps> = ({ children }) => {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const fetchBooks = async () => {
     setLoading(true);
-    const books = await getBooks();
-    setBooks(books);
-    setLoading(false);
+    try {
+      const books = await getBooks();
+      setBooks(books);
+      setLoading(false);
+    } catch (error) {
+      setErrorMessage('Erreur lors du chargement des livres.');
+      setLoading(false);
+    }
   };
 
   const addBook = async (
     book: Omit<Book, '_id' | 'available' | 'borrowedBy' | 'dueDate'>,
   ) => {
     setLoading(true);
-    const newBook = await apiAddBook(book);
-    setBooks((prevBooks) => [...prevBooks, newBook]);
-    setLoading(false);
+    try {
+      const newBook = await apiAddBook(book);
+      setBooks((prevBooks) => [...prevBooks, newBook]);
+      setSuccessMessage('Livre ajouté avec succès.');
+      setLoading(false);
+    } catch (error) {
+      setErrorMessage("Erreur lors de l'ajout du livre.");
+      setLoading(false);
+    }
   };
 
   const deleteBook = async (id: string) => {
     setLoading(true);
-    await apiDeleteBook(id);
-    setBooks((prevBooks) => prevBooks.filter((book) => book._id !== id));
-    setLoading(false);
+    try {
+      await apiDeleteBook(id);
+      setBooks((prevBooks) => prevBooks.filter((book) => book._id !== id));
+      setSuccessMessage('Livre supprimé avec succès.');
+      setLoading(false);
+    } catch (error) {
+      setErrorMessage('Erreur lors de la suppression du livre.');
+      setLoading(false);
+    }
   };
 
   const borrowBook = async (bookId: string, userId: string) => {
     setLoading(true);
-    await apiBorrowBook(bookId, userId);
-    fetchBooks();
-    setLoading(false);
+    try {
+      await apiBorrowBook(bookId, userId);
+      fetchBooks();
+      setSuccessMessage('Livre emprunté avec succès.');
+      setLoading(false);
+    } catch (error) {
+      setErrorMessage("Erreur lors de l'emprunt du livre.");
+      setLoading(false);
+    }
   };
 
   const returnBook = async (bookId: string, userId: string) => {
     setLoading(true);
-    await apiReturnBook(bookId, userId);
-    fetchBooks();
-    setLoading(false);
+    try {
+      await apiReturnBook(bookId, userId);
+      fetchBooks();
+      setSuccessMessage('Livre retourné avec succès.');
+      setLoading(false);
+    } catch (error) {
+      setErrorMessage('Erreur lors du retour du livre.');
+      setLoading(false);
+    }
+  };
+
+  const clearMessages = () => {
+    setSuccessMessage(null);
+    setErrorMessage(null);
   };
 
   useEffect(() => {
@@ -82,11 +121,14 @@ export const BookProvider: React.FC<BookProviderProps> = ({ children }) => {
       value={{
         books,
         loading,
+        successMessage,
+        errorMessage,
         fetchBooks,
         addBook,
         deleteBook,
         borrowBook,
         returnBook,
+        clearMessages,
       }}
     >
       {children}

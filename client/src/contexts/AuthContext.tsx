@@ -1,4 +1,3 @@
-import axios from 'axios';
 import React, {
   createContext,
   ReactNode,
@@ -6,6 +5,7 @@ import React, {
   useEffect,
   useState,
 } from 'react';
+import { login as apiLogin, logout as apiLogout } from '../services/api';
 
 interface Admin {
   _id: string;
@@ -17,12 +17,15 @@ interface Admin {
 interface AuthContextProps {
   admin: Admin | null;
   loading: boolean;
+  successMessage: string | null;
+  errorMessage: string | null;
   login: (
     email: string,
     password: string,
     onSuccess?: () => void,
   ) => Promise<void>;
   logout: () => void;
+  clearMessages: () => void;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -32,6 +35,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [admin, setAdmin] = useState<Admin | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -48,16 +53,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   ) => {
     setLoading(true);
     try {
-      const response = await axios.post(
-        'https://api-bibliotech.onrender.com/api/admins/login',
-        { email, password },
-      );
-      const adminData: Admin = response.data;
+      const adminData: Admin = await apiLogin(email, password);
       localStorage.setItem('adminToken', JSON.stringify(adminData));
       setAdmin(adminData);
+      setSuccessMessage('Connexion réussie.');
       if (onSuccess) onSuccess();
     } catch (error) {
-      console.log('Échec de la connexion', error);
+      setErrorMessage('Échec de la connexion');
     } finally {
       setLoading(false);
     }
@@ -65,11 +67,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   const logout = () => {
     setAdmin(null);
-    localStorage.removeItem('adminToken');
+    apiLogout();
+    setSuccessMessage('Déconnexion réussie.');
+  };
+
+  const clearMessages = () => {
+    setSuccessMessage(null);
+    setErrorMessage(null);
   };
 
   return (
-    <AuthContext.Provider value={{ admin, loading, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        admin,
+        loading,
+        successMessage,
+        errorMessage,
+        login,
+        logout,
+        clearMessages,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
