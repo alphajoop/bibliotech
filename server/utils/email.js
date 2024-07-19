@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
 
 function sendEmail(to, subject, text) {
   const mailOptions = {
-    from: 'librarymanagersysteme@gmail.com',
+    from: 'Bibliotech <bibliotech@gmail.com>',
     to,
     subject,
     text,

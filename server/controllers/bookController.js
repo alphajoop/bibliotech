@@ -33,11 +33,20 @@ export async function borrowBook(req, res) {
     await book.save();
     await user.save();
 
+    // Formater la date au format complet
+    const options = {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    };
+    const formattedDueDate = new Intl.DateTimeFormat('fr-FR', options).format(book.dueDate);
+
     // Envoyer une notification par email à l'utilisateur
     sendEmail(
       user.email,
       'Emprunt de livre confirmé - Bibliotech',
-      `Bonjour ${user.name},\n\nVous avez emprunté le livre "${book.title}" sur Bibliotech. Veuillez le retourner avant le ${book.dueDate.toLocaleDateString()}.\n\nMerci,`,
+      `Bonjour ${user.name},\n\nVous avez emprunté le livre "${book.title}" sur Bibliotech. Veuillez le retourner avant le ${formattedDueDate}.\n\nMerci,`,
     );
 
     res.status(200).json({ message: 'Livre emprunté avec succès' });
