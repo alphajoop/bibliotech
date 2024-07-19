@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Book, User } from '../types';
 
-const apiUrl = 'https://api-bibliotech.vercel.app/api';
+const apiUrl = 'https://api-bibliotech.onrender.com/api';
 
 const api = axios.create({
   baseURL: apiUrl,
