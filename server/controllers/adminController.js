@@ -16,7 +16,7 @@ export async function registerAdmin(req, res) {
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'None',
       maxAge: 24 * 60 * 60 * 1000, // 24 heures
     });
 
@@ -30,7 +30,6 @@ export async function registerAdmin(req, res) {
   }
 }
 
-
 export async function authAdmin(req, res) {
   const { email, password } = req.body;
 
@@ -42,7 +41,7 @@ export async function authAdmin(req, res) {
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'None',
       maxAge: 24 * 60 * 60 * 1000, // 24 heures
     });
 
@@ -60,7 +59,7 @@ export async function logoutAdmin(req, res) {
   res.cookie('token', '', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: 'None',
     maxAge: 0,
   });
   res.status(200).json({ message: 'Logout successful' });
