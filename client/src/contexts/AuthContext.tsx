@@ -5,13 +5,16 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-import { login as apiLogin, logout as apiLogout } from '../services/api';
+import {
+  login as apiLogin,
+  logout as apiLogout,
+  getCurrentAdmin,
+} from '../services/api';
 
 interface Admin {
   _id: string;
   name: string;
   email: string;
-  token: string;
 }
 
 interface AuthContextProps {
@@ -39,11 +42,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('adminToken');
-    if (token) {
-      const adminData: Admin = JSON.parse(token);
-      setAdmin(adminData);
-    }
+    const checkAuthStatus = async () => {
+      try {
+        const adminData = await getCurrentAdmin();
+        setAdmin(adminData);
+        setLoading(false);
+      } catch (error) {
+        setAdmin(null);
+        setLoading(false);
+      }
+    };
+
+    checkAuthStatus();
   }, []);
 
   const login = async (
@@ -54,7 +64,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     setLoading(true);
     try {
       const adminData: Admin = await apiLogin(email, password);
-      localStorage.setItem('adminToken', JSON.stringify(adminData));
       setAdmin(adminData);
       setSuccessMessage('Connexion réussie.');
       if (onSuccess) onSuccess();
@@ -65,10 +74,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const logout = () => {
-    setAdmin(null);
-    apiLogout();
-    setSuccessMessage('Déconnexion réussie.');
+  const logout = async () => {
+    setLoading(true);
+    try {
+      await apiLogout();
+      setAdmin(null);
+      setSuccessMessage('Déconnexion réussie.');
+    } catch (error) {
+      setErrorMessage('Échec de la déconnexion');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const clearMessages = () => {

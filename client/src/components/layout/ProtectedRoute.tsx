@@ -4,5 +4,5 @@ import { useAuth } from '../../contexts/AuthContext';
 export default function ProtectedRoute() {
   const { admin } = useAuth();
 
-  return !admin ? <Navigate to="/login" /> : <Outlet />;
+  return admin ? <Outlet /> : <Navigate to="/login" replace />;
 }

@@ -5,28 +5,8 @@ const apiUrl = 'https://api-bibliotech.onrender.com/api';
 
 const api = axios.create({
   baseURL: apiUrl,
+  withCredentials: true,
 });
-
-// Ajout d'un intercepteur pour les requêtes sortantes
-api.interceptors.request.use(
-  config => {
-    const token = localStorage.getItem('adminToken');
-    if (token) {
-      // Assurez-vous que config.headers est initialisé comme un objet s'il est non défini
-      config.headers = config.headers || {};
-      // Ajouter le token d'authentification à l'en-tête Authorization
-      config.headers.Authorization = `Bearer ${JSON.parse(token).token}`;
-    }
-    return config;
-  },
-  (error) => {
-    if (error.response.status === 401) {
-      console.log('Erreur 401: Non authentifié');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  },
-);
 
 export const getBooks = async (): Promise<Book[]> => {
   const response = await api.get('/books');
@@ -75,12 +55,18 @@ export const returnBook = async (
 };
 
 export const login = async (email: string, password: string) => {
-  const response = await api.post('/admins/login', { email, password });
+  const response = await api.post('/auth/login', { email, password });
   return response.data;
 };
 
-export const logout = () => {
-  localStorage.removeItem('adminToken');
+export const getCurrentAdmin = async () => {
+  const response = await api.get('/auth/check-auth');
+  return response.data;
+};
+
+export const logout = async () => {
+  // Effacer le cookie côté serveur
+  await api.post('/auth/logout');
 };
 
 export default api;

@@ -1,4 +1,5 @@
 import compression from 'compression';
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
@@ -11,7 +12,11 @@ import userRoutes from './routes/userRoutes.js';
 const app = express();
 
 // Configuration CORS
-app.use(cors({ origin: process.env.ALLOWED_ORIGIN }));
+const allowedOrigins = [process.env.ALLOWED_ORIGIN];
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
 
 // Sécurisation des en-têtes HTTP
 app.use(helmet());
@@ -25,6 +30,7 @@ app.use(limiter);
 
 // Middleware pour le traitement des données JSON et URL encodées
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
 
 // Middleware de compression
@@ -36,7 +42,7 @@ connectDB();
 // Utilisation des routes
 app.use('/api/books', bookRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/admins', adminRoutes);
+app.use('/api/auth', adminRoutes);
 
 // Démarrage du serveur
 const PORT = process.env.PORT || 5000;
